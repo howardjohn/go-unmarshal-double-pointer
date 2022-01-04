@@ -11,6 +11,7 @@ import (
 	"encoding"
 	"encoding/base64"
 	"fmt"
+	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -172,6 +173,23 @@ func (d *decodeState) unmarshal(v interface{}) error {
 	if rv.Kind() != reflect.Ptr || rv.IsNil() {
 		return &InvalidUnmarshalError{reflect.TypeOf(v)}
 	}
+
+	// BEGIN PATCH
+	s := rv.Type().String()
+	if len(s) > 2 && s[0] == '*' && s[1] == '*' {
+		allowed := false
+		for _, a := range strings.Split(os.Getenv("ALLOWED_DOUBLE_POINTERS"), ",") {
+			if s == "**"+a {
+				// Explicitly allowed
+				allowed = true
+				break
+			}
+		}
+		if !allowed {
+			panic(fmt.Sprintf("Found double pointer unmarshal for type: %v", s))
+		}
+	}
+	// END PATCH
 
 	d.scan.reset()
 	d.scanWhile(scanSkipSpace)

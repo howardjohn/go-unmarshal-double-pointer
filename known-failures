@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# https://github.com/evanphx/json-patch. Could never trigger a crash though, false positive
+echo -n "jsonpatch.partialDoc,"
